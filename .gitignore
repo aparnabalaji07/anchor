@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Secrets
+.env
+
+# Frontend
+node_modules/
+dist/
+
+# ESP32 / PlatformIO
+.pio/
+.vscode/
+
+# Mac
+.DS_Store
