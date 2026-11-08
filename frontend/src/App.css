@@ -175,6 +175,9 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); background: #fff; }
 .tag.risk { color: var(--red); border-color: var(--red-line); background: var(--red-soft); }
 .tag.call { color: var(--green); border-color: #cfe7d9; background: var(--green-soft); }
+.tag.live { color: var(--red); border-color: var(--red-line); background: var(--red-soft); font-weight: 500; }
+.source-line { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .row-status { font-size: 13px; color: var(--muted); padding-top: 3px; }
 
 /* Badges and bars */

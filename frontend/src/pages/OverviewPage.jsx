@@ -60,6 +60,8 @@ export default function OverviewPage() {
   const critical = queue.filter((h) => h.score >= 70 && h.status !== "resolved");
   const pct = affected.length ? Math.round((reached.length / affected.length) * 100) : 0;
   const hardest = stats?.zipsByOutage?.[0];
+  const liveCount = queue.filter((h) => !h.simulated).length;
+  const simCount = queue.length - liveCount;
 
   const timeline = stats ? stats.timeline.slice(-RANGES[range]) : [];
   const points = timeline.map((t) => ({ value: t.withoutPower }));
@@ -71,37 +73,44 @@ export default function OverviewPage() {
       {error && <div className="error">Could not reach the API: {error}</div>}
       <div className="dash">
         <div className="dash-main">
-          <section className="card">
+          <section className="card cf-card">
             <div className="card-header">
               <span className="label">Call first ›</span>
               <Link to="/queue" className="muted link">View all</Link>
             </div>
-            <div className="card-body split">
-              <div>
-                <div className="big-number">{critical.length}</div>
-                <div className="delta">critical households still open</div>
-                <div className="mini-stats">
-                  <div><span className="label">Asked for a call</span><strong>{queue.filter((h) => h.callRequested).length}</strong></div>
-                  <div><span className="label">Medical device</span><strong>{queue.filter((h) => h.medicalDevice).length}</strong></div>
-                  <div><span className="label">Lives alone</span><strong>{queue.filter((h) => h.livesAlone).length}</strong></div>
-                </div>
+            <div className="cf-stats">
+              <div className="cf-stat cf-critical">
+                <div className="cf-num">{critical.length}</div>
+                <div className="cf-label">Critical open</div>
               </div>
-              <div>
-                <div className="label list-title">Top of the queue</div>
-                {queue.slice(0, 5).map((h) => {
-                  const s = severity(h.score);
-                  return (
-                    <div key={h.id} className="tx" onClick={() => navigate(`/household/${h.id}`)}>
-                      <span className={`tx-dot ${s.cls}`} />
-                      <div className="tx-main">
-                        <div className="tx-title">{h.address.split(",")[0]}</div>
-                        <div className="tx-sub">Out {h.summary.outageHours}h · {STATUS_LABELS[h.status]}</div>
-                      </div>
-                      <div className="tx-amount">{h.score}</div>
+              <div className="cf-stat">
+                <div className="cf-num">{queue.filter((h) => h.callRequested).length}</div>
+                <div className="cf-label">Want a call</div>
+              </div>
+              <div className="cf-stat">
+                <div className="cf-num">{queue.filter((h) => h.medicalDevice).length}</div>
+                <div className="cf-label">Medical device</div>
+              </div>
+              <div className="cf-stat">
+                <div className="cf-num">{queue.filter((h) => h.livesAlone).length}</div>
+                <div className="cf-label">Live alone</div>
+              </div>
+            </div>
+            <div className="cf-list">
+              <div className="label cf-list-title">Top of the queue</div>
+              {queue.slice(0, 5).map((h) => {
+                const s = severity(h.score);
+                return (
+                  <div key={h.id} className="cf-row" onClick={() => navigate(`/household/${h.id}`)}>
+                    <span className="cf-rank">{String(h.rank).padStart(2, "0")}</span>
+                    <div className="cf-main">
+                      <div className="tx-title">{h.address.split(",")[0]}</div>
+                      <div className="tx-sub">Out {h.summary.outageHours}h · {STATUS_LABELS[h.status]}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <span className={`badge ${s.cls}`}>{h.score} · {s.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -113,6 +122,11 @@ export default function OverviewPage() {
               <div className="big-number">{peak}</div>
               <div className="delta">homes at the peak · {now} still without power · {affected.length} affected today</div>
               <AreaChart points={points} />
+              {queue.length > 0 && (
+                <div className="source-line">
+                  {liveCount} live {liveCount === 1 ? "box" : "boxes"} · {simCount} simulated {simCount === 1 ? "household" : "households"}
+                </div>
+              )}
               <div className="range">
                 {Object.keys(RANGES).map((r) => (
                   <button key={r} className={range === r ? "pill active" : "pill"} onClick={() => setRange(r)}>{r}</button>

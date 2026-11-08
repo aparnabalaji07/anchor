@@ -5,6 +5,7 @@ import { api, severity, STATUS_LABELS } from "../api";
 
 const SEVERITIES = ["Critical", "High", "Moderate", "Low"];
 const STATUSES = ["not_contacted", "contacted", "needs_follow_up", "resolved"];
+const SOURCES = { live: "Live boxes", simulated: "Simulated" };
 
 function toggle(list, value) {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -15,6 +16,7 @@ export default function CallListPage() {
   const [error, setError] = useState(null);
   const [sevs, setSevs] = useState([]);
   const [statuses, setStatuses] = useState([]);
+  const [sources, setSources] = useState([]);
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
@@ -41,13 +43,14 @@ export default function CallListPage() {
     };
   }, [filterOpen]);
 
-  const activeCount = sevs.length + statuses.length;
-  const clearAll = () => { setSevs([]); setStatuses([]); };
+  const activeCount = sevs.length + statuses.length + sources.length;
+  const clearAll = () => { setSevs([]); setStatuses([]); setSources([]); };
 
   const shown = queue.filter(
     (h) =>
       (sevs.length === 0 || sevs.includes(severity(h.score).label)) &&
       (statuses.length === 0 || statuses.includes(h.status)) &&
+      (sources.length === 0 || sources.includes(h.simulated ? "simulated" : "live")) &&
       h.address.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -89,6 +92,15 @@ export default function CallListPage() {
                     </label>
                   ))}
                 </div>
+                <div className="filter-group">
+                  <div className="label">Source</div>
+                  {Object.entries(SOURCES).map(([v, text]) => (
+                    <label key={v} className="check">
+                      <input type="checkbox" checked={sources.includes(v)} onChange={() => setSources((l) => toggle(l, v))} />
+                      {text}
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -103,6 +115,11 @@ export default function CallListPage() {
             {statuses.map((v) => (
               <button key={v} className="chip" onClick={() => setStatuses((l) => toggle(l, v))} aria-label={`Remove ${STATUS_LABELS[v]}`}>
                 {STATUS_LABELS[v]} <span aria-hidden>×</span>
+              </button>
+            ))}
+            {sources.map((v) => (
+              <button key={v} className="chip" onClick={() => setSources((l) => toggle(l, v))} aria-label={`Remove ${SOURCES[v]}`}>
+                {SOURCES[v]} <span aria-hidden>×</span>
               </button>
             ))}
             <button className="clear-link" onClick={clearAll}>Clear all</button>
@@ -122,6 +139,7 @@ export default function CallListPage() {
                   {h.aiReason && <span className="ai-tag">AI</span>} {h.reason}
                 </div>
                 <div className="tags">
+                  {!h.simulated && <span className="tag live">● Live box</span>}
                   {h.summary.outageHours > 0 && <span className="tag neutral">Out {h.summary.outageHours}h</span>}
                   {h.summary.minTemp != null && <span className="tag neutral">Low {Math.round(h.summary.minTemp)}°F</span>}
                   {h.medicalDevice && <span className="tag risk">Medical device</span>}
