@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
-import { BellIcon, FileIcon, HelpIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon, SparkIcon } from "./components/Icons";
+import { BellIcon, FileIcon, HelpIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon, SparkIcon, UserIcon } from "./components/Icons";
 import { extra } from "./api";
 import CallListPage from "./pages/CallListPage";
 import HouseholdPage from "./pages/HouseholdPage";
@@ -8,20 +8,30 @@ import MapPage from "./pages/MapPage";
 import OverviewPage from "./pages/OverviewPage";
 import "./App.css";
 
-function greeting() {
-  const h = new Date().getHours();
-  const part = h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
-  const name = localStorage.getItem("agentName");
-  return `Good ${part}${name ? `, ${name}` : ""}`;
+// 5:00-11:59 morning, 12:00-16:59 afternoon, 17:00-4:59 evening
+function greeting(now, name) {
+  const h = now.getHours();
+  const part = h >= 5 && h < 12 ? "morning" : h >= 12 && h < 17 ? "afternoon" : "evening";
+  const first = name?.trim().split(/\s+/)[0];
+  return `Good ${part}${first ? `, ${first}` : ""}`;
 }
 
-function initials() {
-  const name = localStorage.getItem("agentName") || "Agent";
-  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+function initials(name) {
+  const words = name?.trim().split(/\s+/).filter(Boolean) ?? [];
+  return words.map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
 export default function App() {
   const [aiState, setAiState] = useState("idle");
+  const [now, setNow] = useState(() => new Date());
+  // Comes from the signed-in agent once login exists (change 8).
+  const agentName = null;
+
+  // Re-render each minute so the greeting flips at 5am, 12pm and 5pm.
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   async function refreshAi() {
     setAiState("working");
@@ -52,12 +62,12 @@ export default function App() {
         </aside>
         <main className="content">
           <header className="topbar">
-            <h1 className="greeting">{greeting()}</h1>
+            <h1 className="greeting">{greeting(now, agentName)}</h1>
             <div className="top-actions">
               <span className="icon-btn live-dot" title="Live feed" />
               <span className="icon-btn"><BellIcon /></span>
               <span className="icon-btn"><HelpIcon /></span>
-              <span className="avatar">{initials()}</span>
+              <span className="avatar">{initials(agentName) || <UserIcon />}</span>
             </div>
           </header>
           <Routes>

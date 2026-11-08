@@ -9,3 +9,4 @@ export const SparkIcon = () => (<svg {...base}><path d="M12 3v4M12 17v4M3 12h4M1
 export const BellIcon = () => (<svg {...base}><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" /></svg>);
 export const HelpIcon = () => (<svg {...base}><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01" /></svg>);
 export const ClockIcon = () => (<svg {...base}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>);
+export const UserIcon = () => (<svg {...base}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>);
