@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class Reading(BaseModel):
     time: datetime
     counter: int = Field(ge=1)
-    power_on: bool
+    power_on: bool | None = None
     sensors: dict = Field(default_factory=dict)
     prev_hash: str
     hash: str
@@ -14,5 +14,6 @@ class Reading(BaseModel):
 
 class IngestBatch(BaseModel):
     device_id: str
+    photo_consent: bool = False
     call_requested: bool = False
     readings: list[Reading] = Field(min_length=1, max_length=500)
