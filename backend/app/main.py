@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
 
+import psycopg
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import pool
-
 from app.ingest import router as ingest_router
 
 
@@ -33,5 +33,5 @@ def health():
         with pool.connection() as conn:
             conn.execute("SELECT 1")
         return {"status": "ok", "database": "connected"}
-    except Exception:
+    except psycopg.Error:
         return {"status": "degraded", "database": "unreachable"}

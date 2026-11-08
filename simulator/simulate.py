@@ -70,8 +70,8 @@ def make_readings(device_id, start):
         power_on = not (outage_start and outage_start <= t < outage_end)
 
         # Add sensor fields here later, for example: "room_temp": ...
-        payload = {"device_id": device_id, "time": t.isoformat(),
-                   "power_on": power_on, "counter": counter}
+        #payload = {"device_id": device_id, "time": t.isoformat(),
+         #          "power_on": power_on, "counter": counter}
 
         digest = hashlib.sha256(
             f"{device_id}|{t.strftime('%Y-%m-%dT%H:%M:%SZ')}|{counter}|{int(power_on)}|{prev_hash}".encode()
@@ -94,49 +94,48 @@ def main():
     start = (datetime.now(UTC) - WINDOW).replace(second=0, microsecond=0)
     counts = {name: 0 for name, *_ in SCENARIOS}
 
-    with psycopg.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cur:
-            if args.reset:
-                cur.execute("DELETE FROM readings WHERE device_id LIKE 'sim-%'")
-                cur.execute("DELETE FROM call_requests WHERE household_id IN "
-                            "(SELECT id FROM households WHERE simulated)")
-                cur.execute("DELETE FROM contact_status WHERE household_id IN "
-                            "(SELECT id FROM households WHERE simulated)")
-                cur.execute("DELETE FROM claim_drafts WHERE household_id IN "
-                            "(SELECT id FROM households WHERE simulated)")
-                cur.execute("DELETE FROM households WHERE simulated")
-                print("Deleted old simulated data.")
+    with psycopg.connect(DATABASE_URL) as conn, conn.cursor() as cur:
+        if args.reset:
+            cur.execute("DELETE FROM readings WHERE device_id LIKE 'sim-%'")
+            cur.execute("DELETE FROM call_requests WHERE household_id IN "
+                        "(SELECT id FROM households WHERE simulated)")
+            cur.execute("DELETE FROM contact_status WHERE household_id IN "
+                        "(SELECT id FROM households WHERE simulated)")
+            cur.execute("DELETE FROM claim_drafts WHERE household_id IN "
+                        "(SELECT id FROM households WHERE simulated)")
+            cur.execute("DELETE FROM households WHERE simulated")
+            print("Deleted old simulated data.")
 
-            for i in range(1, NUM_HOUSEHOLDS + 1):
-                h = make_household(i)
+        for i in range(1, NUM_HOUSEHOLDS + 1):
+            h = make_household(i)
+            cur.execute(
+                """INSERT INTO households
+                    (device_id, address, zip, lat, lng, lives_alone,
+                    medical_device, mobility_limits, simulated)
+                    VALUES (%(device_id)s, %(address)s, %(zip)s, %(lat)s, %(lng)s,
+                            %(lives_alone)s, %(medical_device)s, %(mobility_limits)s, TRUE)
+                    RETURNING id""",
+                h,
+            )
+            household_id = cur.fetchone()[0]
+
+            scenario, rows = make_readings(h["device_id"], start)
+            counts[scenario] += 1
+
+            with cur.copy(
+                "COPY readings (time, device_id, power_on, counter, hash, prev_hash) FROM STDIN"
+            ) as copy:
+                for row in rows:
+                    copy.write_row(row)
+
+            cur.execute(
+                "INSERT INTO contact_status (household_id) VALUES (%s)", (household_id,)
+            )
+            # Some customers in longer outages press the call-me button
+            if scenario in ("medium", "long") and random.random() < 0.3:
                 cur.execute(
-                    """INSERT INTO households
-                       (device_id, address, zip, lat, lng, lives_alone,
-                        medical_device, mobility_limits, simulated)
-                       VALUES (%(device_id)s, %(address)s, %(zip)s, %(lat)s, %(lng)s,
-                               %(lives_alone)s, %(medical_device)s, %(mobility_limits)s, TRUE)
-                       RETURNING id""",
-                    h,
+                    "INSERT INTO call_requests (household_id) VALUES (%s)", (household_id,)
                 )
-                household_id = cur.fetchone()[0]
-
-                scenario, rows = make_readings(h["device_id"], start)
-                counts[scenario] += 1
-
-                with cur.copy(
-                    "COPY readings (time, device_id, power_on, counter, hash, prev_hash) FROM STDIN"
-                ) as copy:
-                    for row in rows:
-                        copy.write_row(row)
-
-                cur.execute(
-                    "INSERT INTO contact_status (household_id) VALUES (%s)", (household_id,)
-                )
-                # Some customers in longer outages press the call-me button
-                if scenario in ("medium", "long") and random.random() < 0.3:
-                    cur.execute(
-                        "INSERT INTO call_requests (household_id) VALUES (%s)", (household_id,)
-                    )
 
     print(f"Created {NUM_HOUSEHOLDS} simulated households.")
     for name, n in counts.items():
