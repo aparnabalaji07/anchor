@@ -75,8 +75,8 @@ def make_readings(device_id, start):
                    "power_on": power_on, "counter": counter}
 
         digest = hashlib.sha256(
-    f"{device_id}|{t.strftime('%Y-%m-%dT%H:%M:%SZ')}|{counter}|{int(power_on)}|{prev_hash}".encode()
-).hexdigest()
+            f"{device_id}|{t.strftime('%Y-%m-%dT%H:%M:%SZ')}|{counter}|{int(power_on)}|{prev_hash}".encode()
+        ).hexdigest()
 
         rows.append((t, device_id, power_on, counter, digest, prev_hash))
         prev_hash = digest
