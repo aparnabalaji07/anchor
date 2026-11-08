@@ -10,6 +10,7 @@ from app.db import pool
 from app.households import router as households_router
 from app.ingest import router as ingest_router
 from app.queue import router as queue_router
+from app.stats import router as stats_router
 
 
 @asynccontextmanager
@@ -34,6 +35,7 @@ app.include_router(households_router)
 app.include_router(queue_router)
 app.include_router(ai_router)
 app.include_router(claims_router)
+app.include_router(stats_router)
 
 @app.get("/health")
 def health():

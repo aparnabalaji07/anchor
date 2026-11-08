@@ -20,8 +20,7 @@ export const api = {
       body: JSON.stringify({ status, updated_by: updatedBy }),
     }),
   claimDraft: (id) => request(`/households/${id}/claim-draft`),
-  createClaimDraft: (id) =>
-    request(`/households/${id}/claim-draft`, { method: "POST" }),
+  createClaimDraft: (id) => request(`/households/${id}/claim-draft`, { method: "POST" }),
   reviewClaim: (draftId, status, reviewedBy, fields) =>
     request(`/claim-drafts/${draftId}`, {
       method: "PATCH",
@@ -46,9 +45,17 @@ export const STATUS_LABELS = {
 export function getAgentName() {
   let name = localStorage.getItem("agentName");
   if (!name) {
-    name =
-      window.prompt("Your name (shown on status changes and approvals):") || "";
+    name = window.prompt("Your name (shown on status changes and approvals):") || "";
     if (name) localStorage.setItem("agentName", name);
   }
   return name;
 }
+
+export const extra = {
+  stats: () => request("/stats"),
+  generateReasons: (limit = 15) => request(`/ai/reasons?limit=${limit}`, { method: "POST" }),
+};
+
+export const household = {
+  timeline: (id) => request(`/households/${id}/timeline`),
+};
