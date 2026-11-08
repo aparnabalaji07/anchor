@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 
 import psycopg
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai_routes import router as ai_router
+from app.auth import current_agent
+from app.auth import router as auth_router
 from app.claims import router as claims_router
 from app.db import pool
 from app.households import router as households_router
@@ -30,12 +32,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Boxes sign their messages with HMAC, so ingest does not use agent login
 app.include_router(ingest_router)
-app.include_router(households_router)
-app.include_router(queue_router)
-app.include_router(ai_router)
-app.include_router(claims_router)
-app.include_router(stats_router)
+app.include_router(auth_router)
+
+# Everything an agent uses needs a signed-in agent
+agent_only = [Depends(current_agent)]
+app.include_router(households_router, dependencies=agent_only)
+app.include_router(queue_router, dependencies=agent_only)
+app.include_router(ai_router, dependencies=agent_only)
+app.include_router(claims_router, dependencies=agent_only)
+app.include_router(stats_router, dependencies=agent_only)
 
 @app.get("/health")
 def health():

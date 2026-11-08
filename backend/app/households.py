@@ -1,8 +1,9 @@
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from app.auth import CurrentAgent
 from app.db import pool
 from app.verify import verify_device
 
@@ -79,11 +80,12 @@ def household_summary(household_id: int):
 
 class StatusUpdate(BaseModel):
     status: Literal["not_contacted", "contacted", "needs_follow_up", "resolved"]
-    updated_by: str = Field(min_length=1, description="Name of the agent making the change")
 
 
 @router.patch("/{household_id}/status")
-def update_status(household_id: int, update: StatusUpdate):
+def update_status(household_id: int, update: StatusUpdate, agent: CurrentAgent):
+    # The agent's name comes from their token, never from the request body
+    updated_by = agent["name"]
     get_device_id(household_id)  # 404 if the household does not exist
     with pool.connection() as conn:
         conn.execute(
@@ -93,7 +95,7 @@ def update_status(household_id: int, update: StatusUpdate):
                DO UPDATE SET status = EXCLUDED.status,
                              updated_by = EXCLUDED.updated_by,
                              updated_at = NOW()""",
-            (household_id, update.status, update.updated_by),
+            (household_id, update.status, updated_by),
         )
     return {"household_id": household_id, "status": update.status,
-            "updated_by": update.updated_by}
+            "updated_by": updated_by}

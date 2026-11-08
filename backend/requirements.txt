@@ -3,3 +3,4 @@ uvicorn[standard]
 psycopg[binary,pool]
 python-dotenv
 openai
+PyJWT

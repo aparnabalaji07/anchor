@@ -5,6 +5,7 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, ValidationError
 
 from app.ai import ask_json
+from app.auth import CurrentAgent
 from app.db import pool
 from app.households import household_summary
 from app.verify import verify_device
@@ -110,12 +111,13 @@ def latest_claim_draft(household_id: int):
 
 class ClaimReview(BaseModel):
     status: Literal["approved", "rejected"]
-    reviewed_by: str = Field(min_length=1)
     fields: list[dict] | None = None  # the agent's edited fields, if any
 
 
 @router.patch("/claim-drafts/{draft_id}")
-def review_claim_draft(draft_id: int, review: ClaimReview):
+def review_claim_draft(draft_id: int, review: ClaimReview, agent: CurrentAgent):
+    # The reviewer's name comes from their token, never from the request body
+    reviewed_by = agent["name"]
     with pool.connection() as conn:
         row = conn.execute(
             "SELECT draft FROM claim_drafts WHERE id = %s", (draft_id,)
@@ -129,6 +131,6 @@ def review_claim_draft(draft_id: int, review: ClaimReview):
             """UPDATE claim_drafts
                SET status = %s, reviewed_by = %s, reviewed_at = NOW(), draft = %s
                WHERE id = %s""",
-            (review.status, review.reviewed_by, Jsonb(draft), draft_id),
+            (review.status, reviewed_by, Jsonb(draft), draft_id),
         )
-    return {"id": draft_id, "status": review.status, "reviewed_by": review.reviewed_by}
+    return {"id": draft_id, "status": review.status, "reviewed_by": reviewed_by}
