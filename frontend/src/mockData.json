@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "address": "123 Elm St, Frisco, TX",
+    "lat": 33.1507,
+    "lng": -96.8236,
+    "rank": 1,
+    "score": 95,
+    "reason": "Out 16 hours, below freezing 9 hours, leak detected. No claim filed.",
+    "status": "not_contacted",
+    "verified": true,
+    "callRequested": false,
+    "summary": {
+      "outageHours": 16.5,
+      "hoursBelowFreezing": 9,
+      "fridgeHoursWarm": 7,
+      "leak": true
+    }
+  },
+  {
+    "id": 2,
+    "address": "456 Oak Ave, Frisco, TX",
+    "lat": 33.142,
+    "lng": -96.815,
+    "rank": 2,
+    "score": 60,
+    "reason": "Out 9 hours, fridge warm 6 hours. Customer pressed call button.",
+    "status": "not_contacted",
+    "verified": true,
+    "callRequested": true,
+    "summary": {
+      "outageHours": 9,
+      "hoursBelowFreezing": 0,
+      "fridgeHoursWarm": 6,
+      "leak": false
+    }
+  },
+  {
+    "id": 3,
+    "address": "789 Pine Rd, Frisco, TX",
+    "lat": 33.16,
+    "lng": -96.83,
+    "rank": 3,
+    "score": 10,
+    "reason": "Out 1 hour, normal temperature. Probably fine.",
+    "status": "resolved",
+    "verified": true,
+    "callRequested": false,
+    "summary": {
+      "outageHours": 1,
+      "hoursBelowFreezing": 0,
+      "fridgeHoursWarm": 0,
+      "leak": false
+    }
+  }
+]
