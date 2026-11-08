@@ -113,3 +113,17 @@ export const photos = {
     return res.blob();
   },
 };
+
+export const pages = {
+  claimDrafts: () => request("/claim-drafts"),
+  integrity: () => request("/integrity"),
+  notifications: () => request("/notifications"),
+};
+
+export function timeAgo(iso, now = Date.now()) {
+  const mins = Math.max(0, Math.floor((now - new Date(iso)) / 60000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1440) return `${Math.floor(mins / 60)} h ago`;
+  return `${Math.floor(mins / 1440)} d ago`;
+}

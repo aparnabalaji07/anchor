@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { BellIcon, FileIcon, HelpIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon } from "./components/Icons";
+import { FileIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon } from "./components/Icons";
+import { HelpMenu, NotificationsMenu } from "./components/TopMenus";
 import { clearSession, getSession } from "./api";
 import CallListPage from "./pages/CallListPage";
+import ClaimsPage from "./pages/ClaimsPage";
 import HouseholdPage from "./pages/HouseholdPage";
+import IntegrityPage from "./pages/IntegrityPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OverviewPage from "./pages/OverviewPage";
@@ -73,16 +76,16 @@ function Shell({ agent, onSignOut }) {
         <NavLink to="/queue" className="side-link"><ListIcon /> Call queue</NavLink>
         <NavLink to="/map" className="side-link"><MapIcon /> Map</NavLink>
         <div className="side-section">Services</div>
-        <span className="side-link static"><FileIcon /> Claim drafts</span>
-        <span className="side-link static"><ShieldIcon /> Evidence integrity</span>
+        <NavLink to="/claims" className="side-link"><FileIcon /> Claim drafts</NavLink>
+        <NavLink to="/integrity" className="side-link"><ShieldIcon /> Evidence integrity</NavLink>
       </aside>
       <main className="content">
         <header className="topbar">
           <h1 className="greeting">{greeting(now, agent.name)}</h1>
           <div className="top-actions">
             <span className="icon-btn live-dot" title="Live feed" />
-            <span className="icon-btn"><BellIcon /></span>
-            <span className="icon-btn"><HelpIcon /></span>
+            <NotificationsMenu />
+            <HelpMenu />
             <AccountMenu agent={agent} onSignOut={onSignOut} />
           </div>
         </header>
@@ -90,6 +93,8 @@ function Shell({ agent, onSignOut }) {
           <Route path="/" element={<OverviewPage />} />
           <Route path="/queue" element={<CallListPage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/claims" element={<ClaimsPage />} />
+          <Route path="/integrity" element={<IntegrityPage />} />
           <Route path="/household/:id" element={<HouseholdPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
