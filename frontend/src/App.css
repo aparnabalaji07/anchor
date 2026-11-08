@@ -11,6 +11,7 @@
   --orange: #c26a12;  --orange-soft: #fcf3e8;
   --yellow: #9a7a0a;  --yellow-soft: #faf5df;
   --green: #2e7d4f;   --green-soft: #ecf6f0;
+  --blue: #2f5fb3;    --blue-soft: #edf2fb;
   --serif: "Newsreader", Georgia, serif;
   --sans: "Inter", system-ui, -apple-system, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, monospace;
@@ -233,7 +234,24 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .src { font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 999px; }
 .src-measured { background: var(--green-soft); color: var(--green); }
 .src-needs_confirmation { background: var(--yellow-soft); color: var(--yellow); }
-.src-photo { background: var(--red-soft); color: var(--red); }
+.src-photo { background: var(--blue-soft); color: var(--blue); }
+
+/* Claim photos */
+.photos-card { margin-bottom: 18px; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.photo-tile { min-width: 0; }
+.photo-thumb { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--panel); cursor: zoom-in; }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 10px 0 6px; font-size: 12.5px; }
+.photo-desc { margin: 0 0 8px; line-height: 1.45; }
+.photo-pending { color: var(--muted); font-size: 13px; }
+.photo-failed { display: flex; align-items: center; gap: 10px; color: var(--red); font-size: 13px; }
+.tag.sev { text-transform: capitalize; border-color: transparent; }
+.lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(20, 20, 19, 0.72); display: grid; place-items: center; padding: 24px; }
+.lightbox-inner { position: relative; margin: 0; max-width: min(1100px, 100%); background: #fff; border-radius: 12px; padding: 12px; }
+.lightbox-inner img { display: block; max-width: 100%; max-height: 78vh; border-radius: 8px; margin: 0 auto; }
+.lightbox-inner figcaption { margin: 10px 4px 2px; color: var(--muted); font-size: 13px; padding-right: 70px; }
+.lightbox-close { position: absolute; right: 12px; bottom: 10px; }
 .checklist { padding-left: 0; list-style: none; margin: 0 0 18px; }
 .checklist li { padding: 9px 0; border-bottom: 1px solid var(--border); }
 .checklist label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }

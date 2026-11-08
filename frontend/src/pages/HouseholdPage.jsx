@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AreaChart from "../components/AreaChart";
+import ClaimPhotos from "../components/ClaimPhotos";
 import { api, household, STATUS_LABELS } from "../api";
 
 const SOURCE_LABELS = { measured: "Measured", needs_confirmation: "Needs confirmation", photo: "From photo" };
@@ -121,6 +122,8 @@ export default function HouseholdPage() {
         </div>
       </section>
 
+      <ClaimPhotos householdId={id} photoConsent={summary.photo_consent} />
+
       <div className="grid">
         <section className="card">
           <h2>Outage record</h2>
@@ -161,7 +164,9 @@ export default function HouseholdPage() {
                 <div key={i} className="field">
                   <label>
                     {f.name}
-                    <span className={`src src-${f.source}`}>{SOURCE_LABELS[f.source] || f.source}</span>
+                    <span className={`src src-${f.source}`} title={f.evidence || undefined}>
+                      {SOURCE_LABELS[f.source] || f.source}
+                    </span>
                   </label>
                   <input value={f.value ?? ""} onChange={(e) => editField(i, e.target.value)}
                     disabled={draft.status !== "pending_review"} />

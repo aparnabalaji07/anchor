@@ -35,7 +35,7 @@ export async function login(email, password) {
   return session;
 }
 
-async function request(path, options = {}) {
+async function authFetch(path, options = {}) {
   const token = getSession()?.token;
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -50,6 +50,11 @@ async function request(path, options = {}) {
     window.location.assign(`${import.meta.env.BASE_URL}login`);
     throw new Error("Signed out");
   }
+  return res;
+}
+
+async function request(path, options = {}) {
+  const res = await authFetch(path, options);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json();
@@ -96,4 +101,15 @@ export const extra = {
 
 export const household = {
   timeline: (id) => request(`/households/${id}/timeline`),
+};
+
+export const photos = {
+  list: (householdId) => request(`/households/${householdId}/photos`),
+  analyze: (photoId) => request(`/photos/${photoId}/analyze`, { method: "POST" }),
+  // Images need the auth header, so they are fetched as blobs instead of <img src>
+  image: async (photoId) => {
+    const res = await authFetch(`/photos/${photoId}/image`);
+    if (!res.ok) throw new Error(`Could not load photo ${photoId}`);
+    return res.blob();
+  },
 };
