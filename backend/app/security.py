@@ -1,9 +1,13 @@
 import hashlib
 import hmac
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 from app.db import pool
 
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 def load_device_keys() -> dict[str, bytes]:
     """Reads DEVICE_SECRET_KEYS like 'box-001:abc123,box-002:def456'."""

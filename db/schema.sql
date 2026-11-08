@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS claim_drafts (
     status       TEXT NOT NULL DEFAULT 'pending_review'
                  CHECK (status IN ('pending_review', 'approved', 'rejected')),
     created_at   TIMESTAMPTZ DEFAULT NOW(),
-    reviewed_at  TIMESTAMPTZ
+    reviewed_at  TIMESTAMPTZ,
+    reviewed_by  TEXT
 );
 
 CREATE TABLE IF NOT EXISTS rejected_messages (
