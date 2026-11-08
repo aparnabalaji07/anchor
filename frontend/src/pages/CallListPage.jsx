@@ -1,16 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FilterIcon } from "../components/Icons";
 import { api, severity, STATUS_LABELS } from "../api";
 
-const SEVERITIES = ["All", "Critical", "High", "Moderate", "Low"];
-const STATUSES = ["all", "not_contacted", "contacted", "needs_follow_up", "resolved"];
+const SEVERITIES = ["Critical", "High", "Moderate", "Low"];
+const STATUSES = ["not_contacted", "contacted", "needs_follow_up", "resolved"];
+
+function toggle(list, value) {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
 
 export default function CallListPage() {
   const [queue, setQueue] = useState([]);
   const [error, setError] = useState(null);
-  const [sev, setSev] = useState("All");
-  const [status, setStatus] = useState("all");
+  const [sevs, setSevs] = useState([]);
+  const [statuses, setStatuses] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,10 +28,26 @@ export default function CallListPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // Close the filter panel on outside click or Escape
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onClick = (e) => { if (!filterRef.current?.contains(e.target)) setFilterOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setFilterOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [filterOpen]);
+
+  const activeCount = sevs.length + statuses.length;
+  const clearAll = () => { setSevs([]); setStatuses([]); };
+
   const shown = queue.filter(
     (h) =>
-      (sev === "All" || severity(h.score).label === sev) &&
-      (status === "all" || h.status === status) &&
+      (sevs.length === 0 || sevs.includes(severity(h.score).label)) &&
+      (statuses.length === 0 || statuses.includes(h.status)) &&
       h.address.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -38,20 +61,53 @@ export default function CallListPage() {
           <span className="muted">{shown.length} households</span>
         </div>
       <div className="filters">
-        <input className="search" placeholder="Search address..." value={search}
-          onChange={(e) => setSearch(e.target.value)} />
-        <div className="pills">
-          {SEVERITIES.map((s) => (
-            <button key={s} className={sev === s ? "pill active" : "pill"} onClick={() => setSev(s)}>{s}</button>
-          ))}
-        </div>
-        <div className="pills">
-          {STATUSES.map((s) => (
-            <button key={s} className={status === s ? "pill active" : "pill"} onClick={() => setStatus(s)}>
-              {s === "all" ? "All" : STATUS_LABELS[s]}
+        <div className="filter-row">
+          <input className="search" placeholder="Search address..." value={search}
+            onChange={(e) => setSearch(e.target.value)} />
+          <div className="filter-wrap" ref={filterRef}>
+            <button className={activeCount ? "btn filter-btn active" : "btn filter-btn"}
+              onClick={() => setFilterOpen((o) => !o)} aria-expanded={filterOpen}>
+              <FilterIcon /> Filter{activeCount > 0 && <span className="filter-count">{activeCount}</span>}
             </button>
-          ))}
+            {filterOpen && (
+              <div className="filter-panel">
+                <div className="filter-group">
+                  <div className="label">Severity</div>
+                  {SEVERITIES.map((v) => (
+                    <label key={v} className="check">
+                      <input type="checkbox" checked={sevs.includes(v)} onChange={() => setSevs((l) => toggle(l, v))} />
+                      {v}
+                    </label>
+                  ))}
+                </div>
+                <div className="filter-group">
+                  <div className="label">Status</div>
+                  {STATUSES.map((v) => (
+                    <label key={v} className="check">
+                      <input type="checkbox" checked={statuses.includes(v)} onChange={() => setStatuses((l) => toggle(l, v))} />
+                      {STATUS_LABELS[v]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+        {activeCount > 0 && (
+          <div className="chips">
+            {sevs.map((v) => (
+              <button key={v} className="chip" onClick={() => setSevs((l) => toggle(l, v))} aria-label={`Remove ${v}`}>
+                {v} <span aria-hidden>×</span>
+              </button>
+            ))}
+            {statuses.map((v) => (
+              <button key={v} className="chip" onClick={() => setStatuses((l) => toggle(l, v))} aria-label={`Remove ${STATUS_LABELS[v]}`}>
+                {STATUS_LABELS[v]} <span aria-hidden>×</span>
+              </button>
+            ))}
+            <button className="clear-link" onClick={clearAll}>Clear all</button>
+          </div>
+        )}
       </div>
 
       <div className="list">
