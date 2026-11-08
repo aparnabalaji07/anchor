@@ -70,5 +70,6 @@ def household_summary(household_id: int):
         "min_temp": min_temp,
         "cold_hours": round(float(cold_hours or 0), 1),
         "call_requested": call_requested,
+        "photo_consent": photo_consent,
         "readings": readings,
     }
