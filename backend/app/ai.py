@@ -23,8 +23,9 @@ REASON_PROMPT = (
 
 BRIEF_PROMPT = (
     "You help insurance agents respond after a power outage. "
-    "Write 2 to 3 short, plain sentences summarizing the outage event for the agent: "
-    "how big it was, who is most at risk, and how much outreach is left. "
+    "Write a short blurb for the agent: one or two plain sentences, under 35 words in total. "
+    "Say how big the outage was, who is most at risk, and how much outreach is left. "
+    "Pick only the most important numbers. "
     "Use only the facts given. Never invent details, names, places or numbers. "
     "If a fact is null, leave it out. Do not use bullet points, headings or markdown."
 )
@@ -57,7 +58,7 @@ def write_reason(facts: dict) -> str | None:
 
 def write_brief(facts: dict) -> str | None:
     """Returns a 2 to 3 sentence event summary, or None if the AI call fails."""
-    return ask_text(BRIEF_PROMPT, facts, max_tokens=1000, max_chars=700)
+    return ask_text(BRIEF_PROMPT, facts, max_tokens=1000, max_chars=300)
 
 
 def ask_json(system_prompt: str, user_content: dict) -> dict | None:
@@ -69,17 +70,19 @@ def ask_json(system_prompt: str, user_content: dict) -> dict | None:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": json.dumps(user_content, default=str)},
             ],
-            max_tokens=600,
+            # The model reasons before answering, so it needs room beyond the JSON itself
+            max_tokens=2000,
             temperature=0.2,
         )
     except OpenAIError:
         return None
 
     text = (response.choices[0].message.content or "").strip()
-    # Some models wrap JSON in ```json fences
-    if text.startswith("```"):
-        text = text.strip("`").removeprefix("json").strip()
+    # Models sometimes wrap the JSON in ```json fences or add a sentence around it
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end < start:
+        return None
     try:
-        return json.loads(text)
+        return json.loads(text[start:end + 1])
     except json.JSONDecodeError:
         return None

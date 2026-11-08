@@ -54,28 +54,16 @@ def event_facts() -> dict:
 
 
 def fallback_brief(f: dict) -> str:
-    """Plain summary built from the facts, used when the AI call fails."""
+    """Short summary built from the facts, used when the AI call fails."""
     if not f["households_affected"]:
         return "No households have lost power so far."
-    parts = [
-        f"{f['households_affected']} households lost power.",
-        f"{f['critical_still_open']} are critical and {f['affected_not_yet_reached']} have not been reached yet."
-    ]
-    detail = []
-    if f["longest_outage_hours"] is not None:
-        detail.append(f"the longest outage lasted {f['longest_outage_hours']} hours")
-    if f["lowest_indoor_temp_f"] is not None:
-        detail.append(f"the lowest indoor temperature was {f['lowest_indoor_temp_f']}°F")
-    if detail:
-        sentence = " and ".join(detail)
-        parts.append(sentence[0].upper() + sentence[1:] + ".")
+    text = (
+        f"{f['households_affected']} homes lost power, {f['critical_still_open']} critical. "
+        f"{f['affected_not_yet_reached']} not reached yet"
+    )
     if f["hardest_hit_zip"]:
-        parts.append(
-            f"{f['hardest_hit_zip']} was hit hardest with {f['hardest_hit_zip_households']} homes; "
-            f"{f['households_asked_for_call']} asked for a call and "
-            f"{f['affected_with_medical_device']} rely on a medical device."
-        )
-    return " ".join(parts)
+        text += f"; {f['hardest_hit_zip']} was hit hardest"
+    return text + "."
 
 
 @router.post("/brief")
