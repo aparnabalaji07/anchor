@@ -111,6 +111,53 @@ def create_claim_draft(household_id: int):
     return {"id": draft_id, "household_id": household_id, "status": "pending_review", **draft}
 
 
+@router.get("/claim-drafts")
+def list_claim_drafts():
+    """The latest draft for each household, plus households that may need one."""
+    with pool.connection() as conn:
+        rows = conn.execute(
+            """SELECT DISTINCT ON (d.household_id)
+                      d.id, d.household_id, h.address, h.simulated, d.status,
+                      d.created_at, d.reviewed_by, d.reviewed_at, d.draft
+               FROM claim_drafts d JOIN households h ON h.id = d.household_id
+               ORDER BY d.household_id, d.id DESC"""
+        ).fetchall()
+        needs = conn.execute(
+            """SELECT h.id, h.address, h.simulated,
+                      EXISTS (SELECT 1 FROM call_requests c WHERE c.household_id = h.id),
+                      (SELECT COUNT(*) FROM claim_photos p WHERE p.household_id = h.id)
+               FROM households h
+               WHERE NOT EXISTS (SELECT 1 FROM claim_drafts d WHERE d.household_id = h.id)
+                 AND (EXISTS (SELECT 1 FROM call_requests c WHERE c.household_id = h.id)
+                      OR EXISTS (SELECT 1 FROM claim_photos p WHERE p.household_id = h.id))
+               ORDER BY h.simulated, h.address"""
+        ).fetchall()
+
+    drafts = []
+    for did, hid, address, simulated, status, created, reviewed_by, reviewed_at, draft in rows:
+        fields = draft.get("fields", [])
+        drafts.append({
+            "id": did, "householdId": hid, "address": address, "simulated": simulated,
+            "status": status, "createdAt": created, "reviewedBy": reviewed_by,
+            "reviewedAt": reviewed_at, "summary": draft.get("summary"),
+            "aiUsed": draft.get("ai_used", False),
+            "photoFields": sum(1 for f in fields if f.get("source") == "photo"),
+            "confirmFields": sum(1 for f in fields if f.get("source") == "needs_confirmation"),
+        })
+    # Waiting for review first, newest first within each group
+    drafts.sort(key=lambda d: d["createdAt"], reverse=True)
+    drafts.sort(key=lambda d: d["status"] != "pending_review")
+
+    return {
+        "drafts": drafts,
+        "needsDraft": [
+            {"householdId": hid, "address": address, "simulated": simulated,
+             "callRequested": called, "photos": photos}
+            for hid, address, simulated, called, photos in needs
+        ],
+    }
+
+
 @router.get("/households/{household_id}/claim-draft")
 def latest_claim_draft(household_id: int):
     with pool.connection() as conn:

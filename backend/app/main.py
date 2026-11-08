@@ -11,6 +11,8 @@ from app.claims import router as claims_router
 from app.db import pool
 from app.households import router as households_router
 from app.ingest import router as ingest_router
+from app.integrity import router as integrity_router
+from app.notifications import router as notifications_router
 from app.photos import device_router as photo_upload_router
 from app.photos import router as photos_router
 from app.queue import router as queue_router
@@ -29,9 +31,11 @@ app = FastAPI(title="HackUTD Backend", lifespan=lifespan)
 # dev server calls API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173,     "
+    allow_origins=[
+        "http://localhost:5173",
         "https://anchor4.us",
-        "https://www.anchor4.us"],
+        "https://www.anchor4.us",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,6 +52,8 @@ app.include_router(queue_router, dependencies=agent_only)
 app.include_router(ai_router, dependencies=agent_only)
 app.include_router(claims_router, dependencies=agent_only)
 app.include_router(photos_router, dependencies=agent_only)
+app.include_router(integrity_router, dependencies=agent_only)
+app.include_router(notifications_router, dependencies=agent_only)
 app.include_router(stats_router, dependencies=agent_only)
 
 @app.get("/health")

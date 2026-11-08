@@ -1,5 +1,6 @@
 import hashlib
 from datetime import UTC
+from itertools import groupby
 
 from app.db import pool
 
@@ -22,7 +23,24 @@ def verify_device(device_id: str) -> dict:
                FROM readings WHERE device_id = %s ORDER BY counter""",
             (device_id,),
         ).fetchall()
+    return check_chain(device_id, rows)
 
+
+def verify_all() -> dict[str, dict]:
+    """Checks every device's chain with one query (one query per device is too slow remotely)."""
+    with pool.connection() as conn:
+        rows = conn.execute(
+            """SELECT device_id, time, counter, power_on, hash, prev_hash
+               FROM readings ORDER BY device_id, counter"""
+        ).fetchall()
+    return {
+        device_id: check_chain(device_id, [r[1:] for r in group])
+        for device_id, group in groupby(rows, key=lambda r: r[0])
+    }
+
+
+def check_chain(device_id: str, rows: list) -> dict:
+    """rows: (time, counter, power_on, hash, prev_hash) ordered by counter."""
     if not rows:
         return {"status": "no_data", "readings_checked": 0,
                 "first_bad_counter": None, "reason": None}
