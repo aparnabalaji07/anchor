@@ -17,17 +17,24 @@ s AS (
            EXTRACT(EPOCH FROM SUM(duration) FILTER (WHERE power_on = false)) / 3600 AS outage_hours,
            MIN(temp) AS min_temp
     FROM r GROUP BY device_id
+),
+latest AS (
+    SELECT DISTINCT ON (device_id) device_id, power_on
+    FROM readings
+    ORDER BY device_id, time DESC
 )
 SELECT h.id, h.device_id, h.address, h.lat, h.lng,
        h.lives_alone, h.medical_device, h.mobility_limits, h.photo_consent,
-       h.ai_reason,
+       h.ai_reason, h.simulated,
        COALESCE(cs.status, 'not_contacted') AS status,
        EXISTS (SELECT 1 FROM call_requests c WHERE c.household_id = h.id) AS call_requested,
        COALESCE(s.outage_hours, 0) AS outage_hours,
-       s.min_temp
+       s.min_temp,
+       COALESCE(NOT l.power_on, false) AS out_now
 FROM households h
 LEFT JOIN s ON s.device_id = h.device_id
 LEFT JOIN contact_status cs ON cs.household_id = h.id
+LEFT JOIN latest l ON l.device_id = h.device_id
 """
 
 
@@ -53,6 +60,8 @@ def build_queue():
             "aiReason": h["ai_reason"] is not None,
             "status": h["status"],
             "callRequested": h["call_requested"],
+            "outNow": h["out_now"],
+            "simulated": h["simulated"],
             "photoConsent": h["photo_consent"],
             "livesAlone": h["lives_alone"],
             "medicalDevice": h["medical_device"],

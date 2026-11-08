@@ -3,6 +3,11 @@ def score_household(h: dict) -> tuple[int, list[str]]:
     score = 0
     reasons = []
 
+    # A home that is dark right now outranks one whose outage already ended
+    if h.get("out_now"):
+        score += 40
+        reasons.append("Power is out right now")
+
     hours = h["outage_hours"]
     if hours > 0:
         score += int(min(hours, 20) * 2) 
