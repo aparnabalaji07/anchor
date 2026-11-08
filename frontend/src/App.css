@@ -58,6 +58,8 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .mid-number .muted { font-size: 14px; letter-spacing: 0; }
 .delta { color: var(--red); font-size: 13px; margin: 4px 0 14px; }
 .serif-title { font-family: var(--serif); font-size: 24px; margin-bottom: 6px; letter-spacing: -0.01em; }
+.brief-text { margin: 0; line-height: 1.5; color: var(--text); }
+.brief-updated { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 .clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }
 
 /* Cards */

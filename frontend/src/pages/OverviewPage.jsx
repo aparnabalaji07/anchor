@@ -6,17 +6,27 @@ import { api, extra, severity, STATUS_LABELS } from "../api";
 
 const RANGES = { "6H": 6, "12H": 12, "24H": 24, ALL: 1000 };
 
+function timeAgo(iso, now) {
+  const mins = Math.max(0, Math.floor((now - new Date(iso)) / 60000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1440) return `${Math.floor(mins / 60)} h ago`;
+  return `${Math.floor(mins / 1440)} d ago`;
+}
+
 export default function OverviewPage() {
   const [queue, setQueue] = useState([]);
   const [stats, setStats] = useState(null);
+  const [brief, setBrief] = useState(null);
+  const [clock, setClock] = useState(() => Date.now());
   const [range, setRange] = useState("24H");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const load = () =>
-      Promise.all([api.queue(), extra.stats()])
-        .then(([q, s]) => { setQueue(q); setStats(s); setError(null); })
+      Promise.all([api.queue(), extra.stats(), extra.brief()])
+        .then(([q, s, b]) => { setQueue(q); setStats(s); setBrief(b); setClock(Date.now()); setError(null); })
         .catch((e) => setError(e.message));
     load();
     const timer = setInterval(load, 15000);
@@ -29,7 +39,6 @@ export default function OverviewPage() {
   const critical = queue.filter((h) => h.score >= 70 && h.status !== "resolved");
   const pct = affected.length ? Math.round((reached.length / affected.length) * 100) : 0;
   const hardest = stats?.zipsByOutage?.[0];
-  const topAi = queue.find((h) => h.aiReason && h.status !== "resolved");
 
   const timeline = stats ? stats.timeline.slice(-RANGES[range]) : [];
   const points = timeline.map((t) => ({ value: t.withoutPower }));
@@ -111,7 +120,14 @@ export default function OverviewPage() {
             <div className="card-header"><span className="label">AI brief</span></div>
             <div className="card-body">
               <div className="serif-title">Your outage recap</div>
-              <div className="muted clamp">{topAi ? topAi.reason : "Generate AI reasons to see a summary here."}</div>
+              {brief ? (
+                <>
+                  <p className="brief-text">{brief.brief}</p>
+                  <div className="brief-updated">Updated {timeAgo(brief.createdAt, clock)}</div>
+                </>
+              ) : (
+                <div className="muted">No brief yet.</div>
+              )}
             </div>
           </section>
 

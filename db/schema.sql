@@ -58,3 +58,9 @@ CREATE TABLE IF NOT EXISTS rejected_messages (
     reason      TEXT,
     received_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS ai_briefs (
+    id         SERIAL PRIMARY KEY,
+    brief      TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

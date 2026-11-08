@@ -54,6 +54,8 @@ export function getAgentName() {
 export const extra = {
   stats: () => request("/stats"),
   generateReasons: (limit = 15) => request(`/ai/reasons?limit=${limit}`, { method: "POST" }),
+  brief: () => request("/ai/brief"),
+  createBrief: () => request("/ai/brief", { method: "POST" }),
 };
 
 export const household = {
