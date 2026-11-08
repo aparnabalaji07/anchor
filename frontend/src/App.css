@@ -98,23 +98,30 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .chart-empty { height: 190px; display: grid; place-items: center; color: var(--faint); }
 .range { display: flex; justify-content: center; gap: 4px; margin: 14px 0 16px; }
 .btn.wide { display: block; text-align: center; text-decoration: none; padding: 12px; border: 1px solid var(--text); border-radius: 10px; }
-.split { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 28px; }
-.mini-stats { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
-.mini-stats > div { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); }
-.mini-stats strong { font-weight: 500; }
-.list-title { margin-bottom: 6px; }
-.tx { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-.tx:last-child { border-bottom: 0; }
-.tx:hover .tx-title { color: var(--red); }
-.tx-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.tx-dot.sev-critical { background: var(--red); }
-.tx-dot.sev-high { background: var(--orange); }
-.tx-dot.sev-moderate { background: #d4ad1e; }
-.tx-dot.sev-low { background: var(--faint); }
-.tx-main { flex: 1; min-width: 0; }
 .tx-title { font-weight: 500; }
 .tx-sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
-.tx-amount { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* Call first card: stat row on top, full-width queue list below */
+.cf-card { container-type: inline-size; }
+.cf-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
+.cf-stat { padding: 16px 14px 16px 16px; border-left: 1px solid var(--border); min-width: 0; }
+.cf-stat:first-child { border-left: 0; padding-left: 24px; }
+.cf-num { font-size: 28px; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cf-label { font-size: 12px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-critical .cf-num, .cf-critical .cf-label { color: var(--red); }
+.cf-list { padding: 14px 20px 6px; }
+.cf-list-title { margin-bottom: 4px; }
+.cf-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.cf-row:last-child { border-bottom: 0; }
+.cf-row:hover .tx-title { color: var(--red); }
+.cf-rank { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+.cf-main { min-width: 0; }
+.cf-main .tx-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@container (max-width: 440px) {
+  .cf-stats { grid-template-columns: repeat(2, 1fr); }
+  .cf-stat:nth-child(3) { border-left: 0; padding-left: 24px; }
+  .cf-stat:nth-child(n+3) { border-top: 1px solid var(--border); }
+}
 
 /* Hero card */
 .hero { border-radius: 16px; padding: 20px 22px 22px; color: #fff; min-height: 214px; display: flex; flex-direction: column;
@@ -231,7 +238,6 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 
 @media (max-width: 1100px) {
   .dash { grid-template-columns: 1fr; }
-  .split { grid-template-columns: 1fr; }
 }
 
 /* Household timeline */
@@ -240,6 +246,9 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .power-strip span { flex: 1; border-radius: 2px; }
 .power-strip .on { background: #e4e4e1; }
 .power-strip .off { background: var(--red); }
+.time-range { display: flex; justify-content: space-between; margin: 6px 54px 0 0; font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.draft-head { display: flex; align-items: center; gap: 8px; }
+.btn.small { padding: 4px 10px; font-size: 12.5px; }
 .legend { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12.5px; margin-top: 10px; }
 .legend .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-left: 8px; }
 .legend .sw:first-child { margin-left: 0; }
