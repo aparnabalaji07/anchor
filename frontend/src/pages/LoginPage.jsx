@@ -23,7 +23,7 @@ export default function LoginPage({ onSignedIn }) {
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={submit}>
-        <div className="brand login-brand"><img src={logo} alt="" className="brand-logo large" /> Anchor</div>
+        <div className="brand login-brand"><img src={logo} alt="" className="brand-logo large" /> ANCHOR</div>
         <h1 className="login-title">Sign in</h1>
         <p className="muted login-sub">Agent console for outage response.</p>
 
