@@ -51,6 +51,10 @@ def household_summary(household_id: int):
     device_id = get_device_id(household_id)
     with pool.connection() as conn:
         row = conn.execute(SUMMARY_SQL, (device_id,)).fetchone()
+        photo_consent = conn.execute(
+            "SELECT photo_consent FROM households WHERE device_id = %s",
+            (device_id,),
+        ).fetchone()[0]
         call_requested = conn.execute(
             "SELECT EXISTS (SELECT 1 FROM call_requests WHERE household_id = %s)",
             (household_id,),

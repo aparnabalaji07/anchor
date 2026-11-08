@@ -61,7 +61,10 @@ async def ingest(
                ON CONFLICT (device_id, time) DO NOTHING""",
             rows,
         )
-
+        cur.execute(
+            "UPDATE households SET photo_consent = %s WHERE device_id = %s",
+            (batch.photo_consent, batch.device_id),
+        )
         if batch.call_requested:
             cur.execute(
                 """INSERT INTO call_requests (household_id)

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS households (
     lives_alone     BOOLEAN DEFAULT FALSE,
     medical_device  BOOLEAN DEFAULT FALSE,
     mobility_limits BOOLEAN DEFAULT FALSE,
+    photo_consent   BOOLEAN DEFAULT FALSE,
     simulated       BOOLEAN DEFAULT FALSE,
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
