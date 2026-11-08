@@ -235,3 +235,4 @@ dist/
 .DS_Store
 
 simulator/.last_batch.json
+questions-for-ee.md
