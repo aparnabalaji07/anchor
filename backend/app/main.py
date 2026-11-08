@@ -29,7 +29,9 @@ app = FastAPI(title="HackUTD Backend", lifespan=lifespan)
 # dev server calls API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173,     "
+        "https://anchor4.us",
+        "https://www.anchor4.us"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
