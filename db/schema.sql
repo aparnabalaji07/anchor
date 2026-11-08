@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS readings (
     time        TIMESTAMPTZ NOT NULL,
     device_id   TEXT NOT NULL,
     power_on    BOOLEAN,
+    sensors     JSONB,
     counter     BIGINT NOT NULL,
     hash        TEXT,
     prev_hash   TEXT,
