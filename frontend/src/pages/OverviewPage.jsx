@@ -28,6 +28,7 @@ export default function OverviewPage() {
   const notReached = affected.length - reached.length;
   const critical = queue.filter((h) => h.score >= 70 && h.status !== "resolved");
   const pct = affected.length ? Math.round((reached.length / affected.length) * 100) : 0;
+  const hardest = stats?.zipsByOutage?.[0];
   const topAi = queue.find((h) => h.aiReason && h.status !== "resolved");
 
   const timeline = stats ? stats.timeline.slice(-RANGES[range]) : [];
@@ -95,7 +96,14 @@ export default function OverviewPage() {
         <aside className="dash-side">
           <section className="hero">
             <div className="label light">Outage event</div>
-            <div className="hero-title">Power is back. <em>Who needs us</em> first?</div>
+            {hardest ? (
+              <>
+                <div className="hero-title"><em>{hardest.zip}</em> was hit hardest</div>
+                <div className="hero-sub">{hardest.households} {hardest.households === 1 ? "home" : "homes"} lost power</div>
+              </>
+            ) : (
+              <div className="hero-title">No outages recorded yet</div>
+            )}
             <div className="hero-pill"><ClockIcon /> {notReached} households not yet reached</div>
           </section>
 

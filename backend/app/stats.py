@@ -15,11 +15,25 @@ GROUP BY bucket
 ORDER BY bucket
 """
 
+# Households with at least one power-off reading, grouped by zip
+ZIPS_SQL = """
+SELECT h.zip, COUNT(*) AS households
+FROM households h
+WHERE h.zip IS NOT NULL
+  AND EXISTS (
+      SELECT 1 FROM readings r
+      WHERE r.device_id = h.device_id AND r.power_on = false
+  )
+GROUP BY h.zip
+ORDER BY households DESC, h.zip
+"""
+
 
 @router.get("/stats")
 def get_stats():
     with pool.connection() as conn:
         timeline = conn.execute(TIMELINE_SQL).fetchall()
+        zips = conn.execute(ZIPS_SQL).fetchall()
         rejected = conn.execute(
             """SELECT reason, COUNT(*) FROM rejected_messages
                WHERE received_at > NOW() - INTERVAL '24 hours'
@@ -33,4 +47,5 @@ def get_stats():
         ],
         "rejected24h": sum(c for _, c in rejected),
         "rejectedByReason": {r: c for r, c in rejected},
+        "zipsByOutage": [{"zip": z, "households": n} for z, n in zips],
     }

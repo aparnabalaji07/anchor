@@ -101,6 +101,8 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
     radial-gradient(circle at 10% 100%, rgba(80,10,20,0.6), transparent 55%),
     linear-gradient(135deg, #5c1a1f 0%, #a8302a 55%, #d9705f 100%); }
 .hero-title { font-family: var(--serif); font-size: 29px; line-height: 1.15; margin: 26px 0 auto; letter-spacing: -0.01em; }
+.hero-title:has(+ .hero-sub) { margin-bottom: 6px; }
+.hero-sub { margin-bottom: auto; font-size: 15px; opacity: 0.85; }
 .hero-title em { font-style: italic; }
 .hero-pill { align-self: flex-start; margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,0.14); backdrop-filter: blur(4px); font-size: 14px; }
 .progress { height: 6px; background: #efefed; border-radius: 4px; overflow: hidden; }
