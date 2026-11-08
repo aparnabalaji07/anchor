@@ -9,6 +9,10 @@ function fmt(ts) {
   return ts ? new Date(ts).toLocaleString() : "—";
 }
 
+function shortTime(ts) {
+  return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
 export default function HouseholdPage() {
   const { id } = useParams();
   const [summary, setSummary] = useState(null);
@@ -71,7 +75,14 @@ export default function HouseholdPage() {
       <div className="page-head">
         <div>
           <div className="eyebrow">{summary.device_id}</div>
-          <h1>{summary.address || `Household ${id}`}</h1>
+          <div className="title-row">
+            <h1>{summary.address || `Household ${id}`}</h1>
+            {summary.simulated != null && (
+              <span className={`tag ${summary.simulated ? "neutral" : "live"}`}>
+                {summary.simulated ? "Simulated" : "● Live box"}
+              </span>
+            )}
+          </div>
           {verify && (
             <span className={`badge ${verify.status === "verified" ? "ok" : "sev-critical"}`}>
               {verify.status === "verified"
@@ -100,6 +111,12 @@ export default function HouseholdPage() {
               <span key={i} className={p.powerOn ? "on" : "off"} title={p.powerOn ? "Power on" : "Power out"} />
             ))}
           </div>
+          {timeline.length > 1 && (
+            <div className="time-range">
+              <span>{shortTime(timeline[0].time)}</span>
+              <span>{shortTime(timeline[timeline.length - 1].time)}</span>
+            </div>
+          )}
           <div className="legend"><span className="sw off" /> Power out <span className="sw on" /> Power on</div>
         </div>
       </section>
@@ -121,7 +138,16 @@ export default function HouseholdPage() {
         <section className="card">
           <div className="card-head">
             <h2>Claim draft</h2>
-            {draft && <span className="badge neutral">{draft.status.replace("_", " ")}</span>}
+            {draft && (
+              <div className="draft-head">
+                <span className="badge neutral">{draft.status.replace("_", " ")}</span>
+                {draft.status !== "approved" && (
+                  <button className="btn small" disabled={busy} onClick={generateDraft}>
+                    {busy ? "Drafting..." : "Regenerate"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           {!draft && (
             <button className="btn primary" disabled={busy} onClick={generateDraft}>

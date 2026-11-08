@@ -17,11 +17,16 @@ export function clearSession() {
 }
 
 export async function login(email, password) {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  let res;
+  try {
+    res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new Error("Can't reach the server. Make sure the backend is running.");
+  }
   if (res.status === 401) throw new Error("Wrong email or password.");
   if (!res.ok) throw new Error("Could not sign in. Try again in a moment.");
   const { token, name, email: agentEmail } = await res.json();
