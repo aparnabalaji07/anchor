@@ -42,23 +42,6 @@ export default function OverviewPage() {
         <div className="dash-main">
           <section className="card">
             <div className="card-header">
-              <span className="label">Households without power ›</span>
-            </div>
-            <div className="card-body">
-              <div className="big-number">{peak}</div>
-              <div className="delta">homes at the peak · {now} still without power · {affected.length} affected today</div>
-              <AreaChart points={points} />
-              <div className="range">
-                {Object.keys(RANGES).map((r) => (
-                  <button key={r} className={range === r ? "pill active" : "pill"} onClick={() => setRange(r)}>{r}</button>
-                ))}
-              </div>
-              <Link to="/queue" className="btn wide">Open call queue</Link>
-            </div>
-          </section>
-
-          <section className="card">
-            <div className="card-header">
               <span className="label">Call first ›</span>
               <Link to="/queue" className="muted link">View all</Link>
             </div>
@@ -88,6 +71,23 @@ export default function OverviewPage() {
                   );
                 })}
               </div>
+            </div>
+          </section>
+
+          <section className="card">
+            <div className="card-header">
+              <span className="label">Households without power ›</span>
+            </div>
+            <div className="card-body">
+              <div className="big-number">{peak}</div>
+              <div className="delta">homes at the peak · {now} still without power · {affected.length} affected today</div>
+              <AreaChart points={points} />
+              <div className="range">
+                {Object.keys(RANGES).map((r) => (
+                  <button key={r} className={range === r ? "pill active" : "pill"} onClick={() => setRange(r)}>{r}</button>
+                ))}
+              </div>
+              <Link to="/queue" className="btn wide">Open call queue</Link>
             </div>
           </section>
         </div>
