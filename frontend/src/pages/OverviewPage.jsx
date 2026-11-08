@@ -27,7 +27,8 @@ export default function OverviewPage() {
 
   useEffect(() => {
     const load = () =>
-      Promise.all([api.queue(), extra.stats(), extra.brief()])
+      // A missing brief should not stop the rest of the page from loading
+      Promise.all([api.queue(), extra.stats(), extra.brief().catch(() => null)])
         .then(([q, s, b]) => { setQueue(q); setStats(s); setBrief(b); setClock(Date.now()); setError(null); })
         .catch((e) => setError(e.message));
     load();

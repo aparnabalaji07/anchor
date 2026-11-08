@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AreaChart from "../components/AreaChart";
-import { api, getAgentName, household, STATUS_LABELS } from "../api";
+import { api, household, STATUS_LABELS } from "../api";
 
 const SOURCE_LABELS = { measured: "Measured", needs_confirmation: "Needs confirmation", photo: "From photo" };
 
@@ -37,9 +37,7 @@ export default function HouseholdPage() {
   }, [id, reloadKey]);
 
   async function changeStatus(status) {
-    const name = getAgentName();
-    if (!name) return;
-    await api.setStatus(id, status, name);
+    await api.setStatus(id, status);
     setMessage(`Marked as ${STATUS_LABELS[status]}.`);
   }
 
@@ -56,11 +54,9 @@ export default function HouseholdPage() {
   }
 
   async function review(status) {
-    const name = getAgentName();
-    if (!name) return;
-    await api.reviewClaim(draft.id, status, name, fields);
+    const result = await api.reviewClaim(draft.id, status, fields);
     setReloadKey((k) => k + 1);
-    setMessage(`Claim ${status} by ${name}.`);
+    setMessage(`Claim ${status} by ${result.reviewed_by}.`);
   }
 
   function editField(i, value) {

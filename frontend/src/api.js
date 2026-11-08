@@ -1,10 +1,50 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-async function request(path, options = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
+// The signed-in agent lives in sessionStorage, so closing the tab signs them out
+const SESSION_KEY = "anchorSession";
+
+export function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    return s?.token ? s : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    ...options,
+    body: JSON.stringify({ email, password }),
   });
+  if (res.status === 401) throw new Error("Wrong email or password.");
+  if (!res.ok) throw new Error("Could not sign in. Try again in a moment.");
+  const { token, name, email: agentEmail } = await res.json();
+  const session = { token, name, email: agentEmail };
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  return session;
+}
+
+async function request(path, options = {}) {
+  const token = getSession()?.token;
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (res.status === 401) {
+    // Missing or expired token: start over at the sign-in page
+    clearSession();
+    window.location.assign(`${import.meta.env.BASE_URL}login`);
+    throw new Error("Signed out");
+  }
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json();
@@ -14,17 +54,17 @@ export const api = {
   queue: () => request("/queue"),
   summary: (id) => request(`/households/${id}/summary`),
   verify: (id) => request(`/households/${id}/verify`),
-  setStatus: (id, status, updatedBy) =>
+  setStatus: (id, status) =>
     request(`/households/${id}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status, updated_by: updatedBy }),
+      body: JSON.stringify({ status }),
     }),
   claimDraft: (id) => request(`/households/${id}/claim-draft`),
   createClaimDraft: (id) => request(`/households/${id}/claim-draft`, { method: "POST" }),
-  reviewClaim: (draftId, status, reviewedBy, fields) =>
+  reviewClaim: (draftId, status, fields) =>
     request(`/claim-drafts/${draftId}`, {
       method: "PATCH",
-      body: JSON.stringify({ status, reviewed_by: reviewedBy, fields }),
+      body: JSON.stringify({ status, fields }),
     }),
 };
 
@@ -41,15 +81,6 @@ export const STATUS_LABELS = {
   needs_follow_up: "Needs follow-up",
   resolved: "Resolved",
 };
-
-export function getAgentName() {
-  let name = localStorage.getItem("agentName");
-  if (!name) {
-    name = window.prompt("Your name (shown on status changes and approvals):") || "";
-    if (name) localStorage.setItem("agentName", name);
-  }
-  return name;
-}
 
 export const extra = {
   stats: () => request("/stats"),
