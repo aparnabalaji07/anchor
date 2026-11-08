@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import json
 import os
 import random
 from datetime import UTC, datetime, timedelta
@@ -15,6 +16,10 @@ NUM_HOUSEHOLDS = 100
 READING_INTERVAL = timedelta(minutes=10)
 WINDOW = timedelta(hours=24)
 CENTER_LAT, CENTER_LNG = 33.1507, -96.8236  # Frisco, TX
+
+OUTDOOR_TEMP = 22.0   # winter storm, °F
+COOL_RATE = 0.015     # how fast the house cools each 10 minutes with no power
+HEAT_RATE = 0.15      # how fast it warms back up once power returns
 
 STREETS = [
     "Elm St", "Oak Ave", "Pine Rd", "Maple Dr", "Cedar Ln", "Rose Garden Blvd",
@@ -50,11 +55,11 @@ def make_household(i):
         "lives_alone": random.random() < 0.2,
         "medical_device": random.random() < 0.08,
         "mobility_limits": random.random() < 0.1,
+        "photo_consent": random.random() < 0.6,
     }
 
 
 def make_readings(device_id, start):
-    """Build one household's timeline with a hash chain like the real box."""
     scenario, lo, hi = pick_scenario()
     outage_start = outage_end = None
     if scenario != "no_outage":
@@ -62,6 +67,8 @@ def make_readings(device_id, start):
         outage_start = start + timedelta(hours=random.uniform(0, 3))
         outage_end = outage_start + timedelta(hours=hours)
 
+    setpoint = random.uniform(67, 71)  # what the thermostat is set to
+    temp = setpoint
     rows = []
     prev_hash = "0" * 64
     t = start
@@ -69,15 +76,20 @@ def make_readings(device_id, start):
     while t < start + WINDOW:
         power_on = not (outage_start and outage_start <= t < outage_end)
 
-        # Add sensor fields here later, for example: "room_temp": ...
-        #payload = {"device_id": device_id, "time": t.isoformat(),
-         #          "power_on": power_on, "counter": counter}
+        if power_on:
+            temp += (setpoint - temp) * HEAT_RATE
+            light = random.randint(2500, 3500)
+        else:
+            temp += (OUTDOOR_TEMP - temp) * COOL_RATE
+            light = random.randint(50, 300)
+
+        sensors = {"room_temp": round(temp + random.uniform(-0.3, 0.3), 1), "light": light}
 
         digest = hashlib.sha256(
             f"{device_id}|{t.strftime('%Y-%m-%dT%H:%M:%SZ')}|{counter}|{int(power_on)}|{prev_hash}".encode()
         ).hexdigest()
 
-        rows.append((t, device_id, power_on, counter, digest, prev_hash))
+        rows.append((t, device_id, power_on, json.dumps(sensors), counter, digest, prev_hash))
         prev_hash = digest
         t += READING_INTERVAL
         counter += 1
@@ -109,21 +121,22 @@ def main():
         for i in range(1, NUM_HOUSEHOLDS + 1):
             h = make_household(i)
             cur.execute(
-                """INSERT INTO households
-                    (device_id, address, zip, lat, lng, lives_alone,
-                    medical_device, mobility_limits, simulated)
-                    VALUES (%(device_id)s, %(address)s, %(zip)s, %(lat)s, %(lng)s,
-                            %(lives_alone)s, %(medical_device)s, %(mobility_limits)s, TRUE)
-                    RETURNING id""",
-                h,
-            )
+                    """INSERT INTO households
+                       (device_id, address, zip, lat, lng, lives_alone,
+                        medical_device, mobility_limits, photo_consent, simulated)
+                       VALUES (%(device_id)s, %(address)s, %(zip)s, %(lat)s, %(lng)s,
+                               %(lives_alone)s, %(medical_device)s, %(mobility_limits)s,
+                               %(photo_consent)s, TRUE)
+                       RETURNING id""",
+                    h,
+                )
             household_id = cur.fetchone()[0]
 
             scenario, rows = make_readings(h["device_id"], start)
             counts[scenario] += 1
 
             with cur.copy(
-                "COPY readings (time, device_id, power_on, counter, hash, prev_hash) FROM STDIN"
+                "COPY readings (time, device_id, power_on, sensors, counter, hash, prev_hash) FROM STDIN"
             ) as copy:
                 for row in rows:
                     copy.write_row(row)
