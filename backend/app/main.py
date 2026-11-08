@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db import pool
 from app.households import router as households_router
 from app.ingest import router as ingest_router
+from app.queue import router as queue_router
 
 
 @asynccontextmanager
@@ -28,6 +29,7 @@ app.add_middleware(
 
 app.include_router(ingest_router)
 app.include_router(households_router)
+app.include_router(queue_router)
 
 @app.get("/health")
 def health():
