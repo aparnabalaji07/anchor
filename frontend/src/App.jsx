@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
-import { BellIcon, FileIcon, HelpIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon, SparkIcon, UserIcon } from "./components/Icons";
-import { extra } from "./api";
+import { BellIcon, FileIcon, HelpIcon, HomeIcon, ListIcon, MapIcon, ShieldIcon, UserIcon } from "./components/Icons";
 import CallListPage from "./pages/CallListPage";
 import HouseholdPage from "./pages/HouseholdPage";
 import MapPage from "./pages/MapPage";
@@ -22,7 +21,6 @@ function initials(name) {
 }
 
 export default function App() {
-  const [aiState, setAiState] = useState("idle");
   const [now, setNow] = useState(() => new Date());
   // Comes from the signed-in agent once login exists (change 8).
   const agentName = null;
@@ -32,16 +30,6 @@ export default function App() {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
-
-  async function refreshAi() {
-    setAiState("working");
-    try {
-      await extra.generateReasons(15);
-      setAiState("done");
-    } catch {
-      setAiState("idle");
-    }
-  }
 
   return (
     <BrowserRouter>
@@ -55,10 +43,6 @@ export default function App() {
           <div className="side-section">Services</div>
           <span className="side-link static"><FileIcon /> Claim drafts</span>
           <span className="side-link static"><ShieldIcon /> Evidence integrity</span>
-          <button className="ask" onClick={refreshAi} disabled={aiState === "working"}>
-            <SparkIcon />
-            {aiState === "working" ? "Writing reasons..." : aiState === "done" ? "AI reasons updated" : "Refresh AI reasons"}
-          </button>
         </aside>
         <main className="content">
           <header className="topbar">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AreaChart from "../components/AreaChart";
-import { ClockIcon } from "../components/Icons";
+import { ClockIcon, SparkIcon } from "../components/Icons";
 import { api, extra, severity, STATUS_LABELS } from "../api";
 
 const RANGES = { "6H": 6, "12H": 12, "24H": 24, ALL: 1000 };
@@ -19,6 +19,8 @@ export default function OverviewPage() {
   const [stats, setStats] = useState(null);
   const [brief, setBrief] = useState(null);
   const [clock, setClock] = useState(() => Date.now());
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState(null);
   const [range, setRange] = useState("24H");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -32,6 +34,24 @@ export default function OverviewPage() {
     const timer = setInterval(load, 15000);
     return () => clearInterval(timer);
   }, []);
+
+  // Rewrite ranking reasons for the top 15, then a new event brief from fresh facts
+  async function refreshAi() {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      await extra.generateReasons(15).catch(() => setRefreshError("Some AI reasons could not be updated."));
+      const b = await extra.createBrief();
+      const q = await api.queue();
+      setBrief(b);
+      setQueue(q);
+      setClock(Date.now());
+    } catch {
+      setRefreshError("Could not refresh the brief. Try again.");
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const affected = queue.filter((h) => h.summary.outageHours > 0);
   const reached = affected.filter((h) => h.status !== "not_contacted");
@@ -117,7 +137,12 @@ export default function OverviewPage() {
           </section>
 
           <section className="card">
-            <div className="card-header"><span className="label">AI brief</span></div>
+            <div className="card-header">
+              <span className="label">AI brief</span>
+              <button className={refreshing ? "refresh-btn working" : "refresh-btn"} onClick={refreshAi} disabled={refreshing}>
+                <SparkIcon /> {refreshing ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
             <div className="card-body">
               <div className="serif-title">Your outage recap</div>
               {brief ? (
@@ -126,8 +151,9 @@ export default function OverviewPage() {
                   <div className="brief-updated">Updated {timeAgo(brief.createdAt, clock)}</div>
                 </>
               ) : (
-                <div className="muted">No brief yet.</div>
+                <div className="muted">No brief yet. Click Refresh to write one.</div>
               )}
+              {refreshError && <div className="brief-error">{refreshError}</div>}
             </div>
           </section>
 

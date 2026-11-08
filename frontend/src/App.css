@@ -31,9 +31,6 @@ a { color: inherit; }
 .side-link.active { background: #eaeae8; }
 .side-link.static { color: var(--text); cursor: default; }
 .side-link.static:hover { background: none; }
-.ask { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--red); font: inherit; font-size: 14px; cursor: pointer; }
-.ask:hover { border-color: var(--red-line); }
-.ask:disabled { opacity: 0.7; cursor: default; }
 
 /* Top bar */
 .content { flex: 1; min-width: 0; padding: 18px 30px 60px; }
@@ -58,6 +55,13 @@ h1 { margin: 0 0 18px; font-family: var(--serif); font-weight: 400; font-size: 3
 .mid-number .muted { font-size: 14px; letter-spacing: 0; }
 .delta { color: var(--red); font-size: 13px; margin: 4px 0 14px; }
 .serif-title { font-family: var(--serif); font-size: 24px; margin-bottom: 6px; letter-spacing: -0.01em; }
+.refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--red); font: inherit; font-size: 13px; cursor: pointer; }
+.refresh-btn:hover { border-color: var(--red-line); }
+.refresh-btn:disabled { opacity: 0.7; cursor: default; }
+.refresh-btn svg { width: 14px; height: 14px; }
+.refresh-btn.working svg { animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.brief-error { margin-top: 8px; font-size: 12.5px; color: var(--red); }
 .brief-text { margin: 0; line-height: 1.5; color: var(--text); }
 .brief-updated { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 .clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }

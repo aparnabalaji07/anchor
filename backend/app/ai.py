@@ -51,7 +51,8 @@ def ask_text(system_prompt: str, facts: dict, max_tokens: int, max_chars: int) -
 
 def write_reason(facts: dict) -> str | None:
     """Returns a short reason, or None if the AI call fails."""
-    return ask_text(REASON_PROMPT, facts, max_tokens=150, max_chars=400)
+    # The model reasons before answering, so it needs room beyond the reply itself
+    return ask_text(REASON_PROMPT, facts, max_tokens=1000, max_chars=400)
 
 
 def write_brief(facts: dict) -> str | None:
