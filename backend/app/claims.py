@@ -37,6 +37,17 @@ def field(name, value, source, evidence=None):
     return {"name": name, "value": value, "source": source, "evidence": evidence}
 
 
+def done_photo_analyses(household_id: int) -> list[tuple]:
+    """(taken_at in UTC, analysis) for each photo Gemini has finished describing."""
+    with pool.connection() as conn:
+        return conn.execute(
+            """SELECT taken_at AT TIME ZONE 'UTC', analysis FROM claim_photos
+               WHERE household_id = %s AND analysis_status = 'done'
+               ORDER BY taken_at""",
+            (household_id,),
+        ).fetchall()
+
+
 @router.post("/households/{household_id}/claim-draft")
 def create_claim_draft(household_id: int):
     s = household_summary(household_id)
@@ -57,7 +68,13 @@ def create_claim_draft(household_id: int):
               f'{integrity["readings_checked"]} readings checked'),
     ]
 
-    photo_facts = []  # filled in once the Gemini photo pipeline exists
+    # Photo observations come from Gemini's analysis of the box's claim photos
+    photo_facts = []
+    for taken_at, analysis in done_photo_analyses(household_id):
+        photo_facts.append({"taken_at": taken_at.isoformat(), **analysis})
+        for damage in analysis.get("damage", []):
+            fields.append(field("Damage in photo", damage, "photo",
+                                f"Photo taken {taken_at:%b %d, %Y %H:%M} UTC"))
 
     # 2. The AI writes the summary, likely damage and questions
     ai_input = {

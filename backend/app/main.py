@@ -11,6 +11,8 @@ from app.claims import router as claims_router
 from app.db import pool
 from app.households import router as households_router
 from app.ingest import router as ingest_router
+from app.photos import device_router as photo_upload_router
+from app.photos import router as photos_router
 from app.queue import router as queue_router
 from app.stats import router as stats_router
 
@@ -34,6 +36,7 @@ app.add_middleware(
 
 # Boxes sign their messages with HMAC, so ingest does not use agent login
 app.include_router(ingest_router)
+app.include_router(photo_upload_router)
 app.include_router(auth_router)
 
 # Everything an agent uses needs a signed-in agent
@@ -42,6 +45,7 @@ app.include_router(households_router, dependencies=agent_only)
 app.include_router(queue_router, dependencies=agent_only)
 app.include_router(ai_router, dependencies=agent_only)
 app.include_router(claims_router, dependencies=agent_only)
+app.include_router(photos_router, dependencies=agent_only)
 app.include_router(stats_router, dependencies=agent_only)
 
 @app.get("/health")

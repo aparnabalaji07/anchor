@@ -72,3 +72,19 @@ CREATE TABLE IF NOT EXISTS agents (
     password_hash TEXT NOT NULL,
     created_at    TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS claim_photos (
+    id              SERIAL PRIMARY KEY,
+    household_id    INT REFERENCES households(id),
+    device_id       TEXT NOT NULL,
+    taken_at        TIMESTAMPTZ NOT NULL,
+    sha256          TEXT UNIQUE NOT NULL,
+    content_type    TEXT NOT NULL DEFAULT 'image/jpeg',
+    image           BYTEA NOT NULL,
+    analysis        JSONB,
+    analysis_status TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (analysis_status IN ('pending', 'done', 'failed')),
+    uploaded_at     TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS claim_photos_household_idx ON claim_photos (household_id, taken_at);
