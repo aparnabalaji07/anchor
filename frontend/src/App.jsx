@@ -72,16 +72,19 @@ function Shell({ agent, onSignOut }) {
       <aside className="sidebar">
         <div className="brand"><img src={logo} alt="" className="brand-logo" /> Anchor</div>
         <div className="side-section">Track</div>
-        <NavLink to="/" end className="side-link"><HomeIcon /> Overview</NavLink>
-        <NavLink to="/queue" className="side-link"><ListIcon /> Call queue</NavLink>
-        <NavLink to="/map" className="side-link"><MapIcon /> Map</NavLink>
+        <NavLink to="/" end className="side-link"><HomeIcon /> <span className="nav-long">Overview</span><span className="nav-short">Home</span></NavLink>
+        <NavLink to="/queue" className="side-link"><ListIcon /> <span className="nav-long">Call queue</span><span className="nav-short">Queue</span></NavLink>
+        <NavLink to="/map" className="side-link"><MapIcon /> <span className="nav-long">Map</span><span className="nav-short">Map</span></NavLink>
         <div className="side-section">Services</div>
-        <NavLink to="/claims" className="side-link"><FileIcon /> Claim drafts</NavLink>
-        <NavLink to="/integrity" className="side-link"><ShieldIcon /> Evidence integrity</NavLink>
+        <NavLink to="/claims" className="side-link"><FileIcon /> <span className="nav-long">Claim drafts</span><span className="nav-short">Claims</span></NavLink>
+        <NavLink to="/integrity" className="side-link"><ShieldIcon /> <span className="nav-long">Evidence integrity</span><span className="nav-short">Evidence</span></NavLink>
       </aside>
       <main className="content">
         <header className="topbar">
-          <h1 className="greeting">{greeting(now, agent.name)}</h1>
+          <div className="topbar-left">
+            <img src={logo} alt="" className="topbar-logo" />
+            <h1 className="greeting">{greeting(now, agent.name)}</h1>
+          </div>
           <div className="top-actions">
             <span className="icon-btn live-dot" title="Live feed" />
             <NotificationsMenu />
