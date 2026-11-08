@@ -16,3 +16,11 @@ We built a sensor box that records what happened in the home during the outage, 
 ## Setup
 
 Copy .env.example to .env and fill in the values.
+
+## Run locally
+
+Start the backend and frontend together (Ctrl+C stops both):
+
+    ./dev.sh
+
+Then open http://localhost:5173 and sign in. API docs are at http://localhost:8000/docs.
