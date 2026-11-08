@@ -1,9 +1,8 @@
 import argparse
 import hashlib
-import json
 import os
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import psycopg
@@ -92,7 +91,7 @@ def main():
     args = parser.parse_args()
     random.seed(args.seed)
 
-    start = (datetime.now(timezone.utc) - WINDOW).replace(second=0, microsecond=0)
+    start = (datetime.now(UTC) - WINDOW).replace(second=0, microsecond=0)
     counts = {name: 0 for name, *_ in SCENARIOS}
 
     with psycopg.connect(DATABASE_URL) as conn:
